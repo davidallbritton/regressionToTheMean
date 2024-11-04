@@ -3,6 +3,9 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 
+options(shiny.reactlog = TRUE)
+
+
 # Define UI
 ui <- fluidPage(
   titlePanel("True Scores and Test Scores"),
@@ -10,7 +13,7 @@ ui <- fluidPage(
     sidebarPanel(
       sliderInput("signal_sd", "Signal SD", min = 0, max = 30, value = 15),  # New Signal SD slider
       sliderInput("noise_sd", "Noise SD", min = 0, max = 30, value = 15),    # Updated default value to 15
-      actionButton("regenerate_test1", "Regenerate Test1"),
+      actionButton("regenerate_test1", "Regenerate All"),
       actionButton("regenerate_test2", "Regenerate Test2"),
       tableOutput("scoresTable")
     ),
@@ -40,11 +43,24 @@ server <- function(input, output, session) {
     df
   }
   
-  # Initial score generation
+  # # Initial score generation
+  # observe({
+  #   scores$data <- generate_scores()
+  #   scores$correlation <- cor(scores$data$Test1, scores$data$Test2)
+  # })
+  
+  # Define a reactive value to act as a flag for initial load
+  initial_load <- reactiveVal(TRUE)
+  
+  # Initial score generation that only runs once
   observe({
-    scores$data <- generate_scores()
-    scores$correlation <- cor(scores$data$Test1, scores$data$Test2)
+    if (initial_load()) {
+      scores$data <- generate_scores()
+      scores$correlation <- cor(scores$data$Test1, scores$data$Test2)
+      initial_load(FALSE)  # Set the flag to FALSE after the first run
+    }
   })
+  
   
   # Regenerate Test1 and update data when the button is pressed
   observeEvent(input$regenerate_test1, {
@@ -67,7 +83,7 @@ server <- function(input, output, session) {
     df <- df %>%
       mutate(Color = case_when(
         Test1 %in% tail(sort(Test1), 5) ~ "red",
-        Test1 %in% head(sort(Test1), 5) ~ "green",
+        Test1 %in% head(sort(Test1), 5) ~ "darkdarkgreen",
         TRUE ~ "black"
       ))
     
@@ -83,7 +99,7 @@ server <- function(input, output, session) {
     df <- scores$data %>%
       mutate(Color = case_when(
         Test1 %in% tail(sort(Test1), 5) ~ "red",
-        Test1 %in% head(sort(Test1), 5) ~ "green",
+        Test1 %in% head(sort(Test1), 5) ~ "darkgreen",
         TRUE ~ "black"
       ))
     
