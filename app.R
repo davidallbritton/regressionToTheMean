@@ -8,7 +8,8 @@ ui <- fluidPage(
   titlePanel("True Scores and Test Scores"),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("noise_sd", "Noise SD", min = 0, max = 30, value = 10),
+      sliderInput("signal_sd", "Signal SD", min = 0, max = 30, value = 15),  # New Signal SD slider
+      sliderInput("noise_sd", "Noise SD", min = 0, max = 30, value = 15),    # Updated default value to 15
       actionButton("regenerate_test1", "Regenerate Test1"),
       actionButton("regenerate_test2", "Regenerate Test2"),
       tableOutput("scoresTable")
@@ -26,7 +27,7 @@ server <- function(input, output, session) {
   
   # Function to generate and sort scores
   generate_scores <- function() {
-    TrueScores <- rnorm(26, mean = 100, sd = 15)
+    TrueScores <- rnorm(26, mean = 100, sd = input$signal_sd)  # Use Signal SD slider value here
     Test1 <- TrueScores + rnorm(26, mean = 0, sd = input$noise_sd)
     Test2 <- TrueScores + rnorm(26, mean = 0, sd = input$noise_sd)
     
@@ -94,6 +95,7 @@ server <- function(input, output, session) {
     ggplot(df_long, aes(x = Test, y = Score)) +
       geom_boxplot(outlier.shape = NA, fill = "gray80") +
       geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
+      geom_hline(yintercept = 100, color = "blue", linetype = "solid") +  # Add solid blue line at 100
       scale_color_identity() +
       labs(
         title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
