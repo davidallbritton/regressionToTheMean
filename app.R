@@ -75,15 +75,15 @@ server <- function(input, output, session) {
     scores$correlation <- cor(scores$data$Test1, scores$data$Test2)
   })
   
-  # Display scores in a table with colored letters for highest and lowest scores
+  # Display scores in a table with coloblue letters for highest and lowest scores
   output$scoresTable <- renderTable({
     df <- scores$data
     
     # Identify the highest and lowest scores in Test1
     df <- df %>%
       mutate(Color = case_when(
-        Test1 %in% tail(sort(Test1), 5) ~ "red",
-        Test1 %in% head(sort(Test1), 5) ~ "darkdarkgreen",
+        Test1 %in% tail(sort(Test1), 5) ~ "blue",
+        Test1 %in% head(sort(Test1), 5) ~ "#FF00FF",
         TRUE ~ "black"
       ))
     
@@ -93,13 +93,13 @@ server <- function(input, output, session) {
       select(Subject, TrueScores, Test1, Test2)  # Drop Color column for display
   }, sanitize.text.function = identity)  # Allow HTML styling in the table
   
-  # # Plot box plots for Test1 and Test2 with colored and labeled points
+  # # Plot box plots for Test1 and Test2 with coloblue and labeled points
   # output$boxPlot <- renderPlot({
   #   # Prepare data with colors
   #   df <- scores$data %>%
   #     mutate(Color = case_when(
-  #       Test1 %in% tail(sort(Test1), 5) ~ "red",
-  #       Test1 %in% head(sort(Test1), 5) ~ "darkgreen",
+  #       Test1 %in% tail(sort(Test1), 5) ~ "blue",
+  #       Test1 %in% head(sort(Test1), 5) ~ "#FF00FF",
   #       TRUE ~ "black"
   #     ))
   #   
@@ -125,9 +125,9 @@ server <- function(input, output, session) {
     # Prepare data with colors
     df <- scores$data %>%
       mutate(Color = case_when(
-        Test1 %in% tail(sort(Test1), 5) ~ "red",
-        Test1 %in% head(sort(Test1), 5) ~ "green",
-        TRUE ~ "black"
+        Test1 %in% tail(sort(Test1), 5) ~ "blue",
+        Test1 %in% head(sort(Test1), 5) ~ "#FF00FF",
+        TRUE ~ "gray"
       ))
     
     # Reshape data for plotting
@@ -137,7 +137,7 @@ server <- function(input, output, session) {
     # Create the plot with only data points and labels
     ggplot(df_long, aes(x = Test, y = Score)) +
       geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
-      geom_hline(yintercept = 100, color = "blue", linetype = "solid") +  # Add solid blue line at 100
+      geom_hline(yintercept = 100, color = "yellow", linetype = "solid") +  # Add solid blue line at 100
       scale_color_identity() +
       labs(
         title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
