@@ -8,7 +8,7 @@ options(shiny.reactlog = TRUE)
 
 # Define UI
 ui <- fluidPage(
-  titlePanel("True Scores and Test Scores"),
+  titlePanel("Regression to the Mean"),
   sidebarLayout(
     sidebarPanel(
       sliderInput("signal_sd", "Signal SD", min = 0, max = 30, value = 15),  # New Signal SD slider
@@ -18,7 +18,14 @@ ui <- fluidPage(
       tableOutput("scoresTable")
     ),
     mainPanel(
-      plotOutput("boxPlot")
+      plotOutput("boxPlot"),
+      p("The dots in the plot are the means of the 5 individuals who had the",
+        "highest and lowest scores on Test 1.",
+        "Repeatedly regenerate scores for Test 2 and see how often the",
+        "extreme scores on Test 1 exhibit regression to the mean.",
+        "Change the correlation between Test 1 and Test 2 by changing",
+        "the standard deviation (SD) for the signal (variability in the true scores)",
+        "and for the noise (error variability in the Test 1 and Test 2 samples).")
     )
   )
 )
@@ -110,6 +117,10 @@ server <- function(input, output, session) {
     mean_V_Z_test1 <- mean(df %>% filter(Subject %in% LETTERS[22:26]) %>% pull(Test1))
     mean_V_Z_test2 <- mean(df %>% filter(Subject %in% LETTERS[22:26]) %>% pull(Test2))
     
+    # Determine the y-axis maximum as the greater of 250 or the highest score in the data
+    y_max <- max(190, df$Test1, df$Test2) + 10
+    y_min <- 0
+    
     # Reshape data for plotting
     df_long <- df %>%
       pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
@@ -128,36 +139,9 @@ server <- function(input, output, session) {
         title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
         x = "Test", y = "Score"
       ) +
+      ylim(y_min, y_max) +  # Set y-axis limits
       theme_minimal()
   })
-  
-
-  
-  # # Plot only the data points without the box plot
-  # output$boxPlot <- renderPlot({
-  #   # Prepare data with colors
-  #   df <- scores$data %>%
-  #     mutate(Color = case_when(
-  #       Test1 %in% tail(sort(Test1), 5) ~ "blue",
-  #       Test1 %in% head(sort(Test1), 5) ~ "#FF00FF",
-  #       TRUE ~ "gray"
-  #     ))
-  #   
-  #   # Reshape data for plotting
-  #   df_long <- df %>%
-  #     pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
-  #   
-  #   # Create the plot with only data points and labels
-  #   ggplot(df_long, aes(x = Test, y = Score)) +
-  #     geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
-  #     geom_hline(yintercept = 100, color = "yellow", linetype = "solid") +  # Add solid blue line at 100
-  #     scale_color_identity() +
-  #     labs(
-  #       title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
-  #       x = "Test", y = "Score"
-  #     ) +
-  #     theme_minimal()
-  # })
   
   
   
