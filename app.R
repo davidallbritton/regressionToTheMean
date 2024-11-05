@@ -93,32 +93,6 @@ server <- function(input, output, session) {
       select(Subject, TrueScores, Test1, Test2)  # Drop Color column for display
   }, sanitize.text.function = identity)  # Allow HTML styling in the table
   
-  # # Plot box plots for Test1 and Test2 with coloblue and labeled points
-  # output$boxPlot <- renderPlot({
-  #   # Prepare data with colors
-  #   df <- scores$data %>%
-  #     mutate(Color = case_when(
-  #       Test1 %in% tail(sort(Test1), 5) ~ "blue",
-  #       Test1 %in% head(sort(Test1), 5) ~ "#FF00FF",
-  #       TRUE ~ "black"
-  #     ))
-  #   
-  #   # Reshape data for box plot
-  #   df_long <- df %>%
-  #     pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
-  #   
-  #   # Create box plot
-  #   ggplot(df_long, aes(x = Test, y = Score)) +
-  #     geom_boxplot(outlier.shape = NA, fill = "gray80") +
-  #     geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
-  #     geom_hline(yintercept = 100, color = "blue", linetype = "solid") +  # Add solid blue line at 100
-  #     scale_color_identity() +
-  #     labs(
-  #       title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
-  #       x = "Test", y = "Score"
-  #     ) +
-  #     theme_minimal()
-  # })
   
   # Plot only the data points without the box plot
   output$boxPlot <- renderPlot({
@@ -130,6 +104,12 @@ server <- function(input, output, session) {
         TRUE ~ "gray"
       ))
     
+    # Calculate means for groups A-E and V-Z
+    mean_A_E_test1 <- mean(df %>% filter(Subject %in% LETTERS[1:5]) %>% pull(Test1))
+    mean_A_E_test2 <- mean(df %>% filter(Subject %in% LETTERS[1:5]) %>% pull(Test2))
+    mean_V_Z_test1 <- mean(df %>% filter(Subject %in% LETTERS[22:26]) %>% pull(Test1))
+    mean_V_Z_test2 <- mean(df %>% filter(Subject %in% LETTERS[22:26]) %>% pull(Test2))
+    
     # Reshape data for plotting
     df_long <- df %>%
       pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
@@ -137,7 +117,12 @@ server <- function(input, output, session) {
     # Create the plot with only data points and labels
     ggplot(df_long, aes(x = Test, y = Score)) +
       geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
-      geom_hline(yintercept = 100, color = "yellow", linetype = "solid") +  # Add solid blue line at 100
+      geom_hline(yintercept = 100, color = "yellow", linetype = "solid") +  # Add solid yellow line at 100
+      # Add big blue dot for the mean of A-E and matching color for V-Z
+      geom_point(aes(x = "Test1", y = mean_A_E_test1), color = "blue", size = 5) +
+      geom_point(aes(x = "Test2", y = mean_A_E_test2), color = "blue", size = 5) +
+      geom_point(aes(x = "Test1", y = mean_V_Z_test1), color = "#FF00FF", size = 5) +
+      geom_point(aes(x = "Test2", y = mean_V_Z_test2), color = "#FF00FF", size = 5) +
       scale_color_identity() +
       labs(
         title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
@@ -145,6 +130,34 @@ server <- function(input, output, session) {
       ) +
       theme_minimal()
   })
+  
+
+  
+  # # Plot only the data points without the box plot
+  # output$boxPlot <- renderPlot({
+  #   # Prepare data with colors
+  #   df <- scores$data %>%
+  #     mutate(Color = case_when(
+  #       Test1 %in% tail(sort(Test1), 5) ~ "blue",
+  #       Test1 %in% head(sort(Test1), 5) ~ "#FF00FF",
+  #       TRUE ~ "gray"
+  #     ))
+  #   
+  #   # Reshape data for plotting
+  #   df_long <- df %>%
+  #     pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
+  #   
+  #   # Create the plot with only data points and labels
+  #   ggplot(df_long, aes(x = Test, y = Score)) +
+  #     geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
+  #     geom_hline(yintercept = 100, color = "yellow", linetype = "solid") +  # Add solid blue line at 100
+  #     scale_color_identity() +
+  #     labs(
+  #       title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
+  #       x = "Test", y = "Score"
+  #     ) +
+  #     theme_minimal()
+  # })
   
   
   
