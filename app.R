@@ -93,23 +93,49 @@ server <- function(input, output, session) {
       select(Subject, TrueScores, Test1, Test2)  # Drop Color column for display
   }, sanitize.text.function = identity)  # Allow HTML styling in the table
   
-  # Plot box plots for Test1 and Test2 with colored and labeled points
+  # # Plot box plots for Test1 and Test2 with colored and labeled points
+  # output$boxPlot <- renderPlot({
+  #   # Prepare data with colors
+  #   df <- scores$data %>%
+  #     mutate(Color = case_when(
+  #       Test1 %in% tail(sort(Test1), 5) ~ "red",
+  #       Test1 %in% head(sort(Test1), 5) ~ "darkgreen",
+  #       TRUE ~ "black"
+  #     ))
+  #   
+  #   # Reshape data for box plot
+  #   df_long <- df %>%
+  #     pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
+  #   
+  #   # Create box plot
+  #   ggplot(df_long, aes(x = Test, y = Score)) +
+  #     geom_boxplot(outlier.shape = NA, fill = "gray80") +
+  #     geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
+  #     geom_hline(yintercept = 100, color = "blue", linetype = "solid") +  # Add solid blue line at 100
+  #     scale_color_identity() +
+  #     labs(
+  #       title = paste("Correlation of Test1 and Test2, r =", round(scores$correlation, 2)),
+  #       x = "Test", y = "Score"
+  #     ) +
+  #     theme_minimal()
+  # })
+  
+  # Plot only the data points without the box plot
   output$boxPlot <- renderPlot({
     # Prepare data with colors
     df <- scores$data %>%
       mutate(Color = case_when(
         Test1 %in% tail(sort(Test1), 5) ~ "red",
-        Test1 %in% head(sort(Test1), 5) ~ "darkgreen",
+        Test1 %in% head(sort(Test1), 5) ~ "green",
         TRUE ~ "black"
       ))
     
-    # Reshape data for box plot
+    # Reshape data for plotting
     df_long <- df %>%
       pivot_longer(cols = c("Test1", "Test2"), names_to = "Test", values_to = "Score")
     
-    # Create box plot
+    # Create the plot with only data points and labels
     ggplot(df_long, aes(x = Test, y = Score)) +
-      geom_boxplot(outlier.shape = NA, fill = "gray80") +
       geom_text(aes(label = Subject, color = Color), position = position_jitter(width = 0.15, height = 0)) +
       geom_hline(yintercept = 100, color = "blue", linetype = "solid") +  # Add solid blue line at 100
       scale_color_identity() +
@@ -119,6 +145,11 @@ server <- function(input, output, session) {
       ) +
       theme_minimal()
   })
+  
+  
+  
+  
+  
 }
 
 # Run the application 
